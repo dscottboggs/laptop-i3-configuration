@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 import psutil
-from json import dumps
 
 current_utilization = psutil.cpu_percent(interval=1)
 
