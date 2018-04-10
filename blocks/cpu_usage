@@ -1,0 +1,9 @@
+#!/usr/bin/env python3
+import psutil
+from json import dumps
+
+current_utilization = psutil.cpu_percent(interval=1)
+
+print(str(current_utilization) + "%") # full text
+print(str(current_utilization) + "%") # short text
+print("#FFFFFF" if current_utilization<85 else "#FF4444")

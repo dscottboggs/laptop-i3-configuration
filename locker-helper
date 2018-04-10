@@ -1,0 +1,2 @@
+# a single command to run an xautolock locker with args
+/usr/bin/dm-tool lock

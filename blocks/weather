@@ -1,0 +1,163 @@
+#!/usr/bin/env python3.6
+from json import loads, dumps
+from subprocess import run, PIPE
+from requests.exceptions import ConnectionError
+from time import sleep
+import requests
+import os
+
+class CurrentWeather():
+    """Make requests for and evaluate data regarding the weather"""
+    CITY_ID = 5206379
+    API_KEY = "b0f891eb3e45d840d7f85328d6352a89"
+    BASE_URL = "https://api.openweathermap.org/data/2.5/weather"
+    UNITS = "imperial"
+    degrees = "F"
+    JSON = False
+    def __init__(self):
+        self.FULL_URL = f"{self.BASE_URL}?id={self.CITY_ID}&units={self.UNITS}&APPID={self.API_KEY}"
+        self.retries = 0
+    def update(self):
+        try:
+            self.weather = requests.get(self.FULL_URL).json()
+        except ConnectionError:
+            if self.retries < 10:
+                self.retries += 1
+                sleep(60)
+                self.update()
+            else:
+                exit(2)
+    @property
+    def color(self):
+        temp = self.weather['main']['temp']
+        if temp>90:
+            return "#FF0000"
+        if temp>80:
+            return "#FF4400"
+        if temp>70:
+            return "#FF8800"
+        if temp>60:
+            return "#FF0088"
+        if temp>50:
+            return "#8800FF"
+        if temp>40:
+            return "#0000FF"
+        if temp>30:
+            return "#0040FF"
+        if temp>20:
+            return "#0088FF"
+        else:
+            return "#00FFFF"
+    @property
+    def temp(self):
+        return self.weather['main']['temp']
+    @property
+    def status(self):
+        return self.weather['weather'][0]['description']
+    @property
+    def wind_speed(self):
+        return self.weather['wind']['speed']
+    @property
+    def wind_direction(self):
+        try:
+            dir = self.weather['wind']['deg']
+        except KeyError:
+            return {'full': '', 'short': ''}
+        if dir<=360 and dir>330:
+            return {
+                'full': "North at ",
+                'short': 'N@'
+            }
+        elif dir>0 and dir<=30:
+            return {
+                'full': "North at ",
+                'short': 'N@'
+            }
+        elif dir>30 and dir<=60:
+            return {
+                'full': "North-East at ",
+                'short': 'NE@'
+            }
+        elif dir>60 and dir<=120:
+            return {
+                'full': "East at ",
+                'short': 'E@'
+            }
+        elif dir>120 and dir<=150:
+            return {
+                'full': "South-East at ",
+                'short': 'SE@'
+            }
+        elif dir>150 and dir<=210:
+            return {
+                'full': "South at ",
+                'short': 'S@'
+            }
+        elif dir>210 and dir<=240:
+            return {
+                'full': "South-West at ",
+                'short': 'SW@'
+            }
+        elif dir>240 and dir<=300:
+            return {
+                'full': "West at ",
+                'short': 'W@'
+            }
+        else:
+            return {
+                'full': "North-West at ",
+                'short': 'NW@'
+            }
+    def output(self):
+        if self.weather['cod'] != 200:
+            print("Error collecting weather. Status: %s", self.weather['cod'])
+            print("Req status: %s", self.weather['cod'])
+            print("#FF0000")
+            exit(self.weather['cod'])
+        if self.JSON:
+            print(dumps({
+                "full_text": "Currently %s and %f%s. Winds %s%f MPH." % (
+                    self.status,
+                    self.temp,
+                    self.degrees,
+                    self.wind_direction['full'],
+                    self.wind_speed
+                ),
+                "short_text": "%s %f%s. %s@%fMPH." % (
+                    self.status.capitalize(),
+                    self.temp,
+                    self.degrees,
+                    self.wind_direction['short'],
+                    self.wind_speed
+                ),
+                "color": self.color
+            }))
+        else:
+            print(
+                "Currently ", self.status, " and ", self.temp,
+                self.degrees, ". Winds ", self.wind_direction['full'],
+                self.wind_speed, " MPH.", sep=''
+            )
+            print(
+                self.status.capitalize(), ' ', self.temp,
+                self.degrees, '. ', self.wind_direction['short'],
+                self.wind_speed, "MPH.", sep=''
+            )
+            print(self.color)
+
+    def open_page(self):
+        run(
+            "firefox --new-tab https://forecast.weather.gov/MapClick.php?lat=40.49445390000011&lon=-80.0536131",
+            stdout=PIPE,
+            check=False,
+            shell=True
+        )
+
+w = CurrentWeather()
+try:
+    if os.environ['BLOCK_BUTTON'] == '1':
+        w.open_page()
+except KeyError:
+    pass
+w.update()
+w.output()

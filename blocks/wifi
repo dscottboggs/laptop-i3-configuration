@@ -1,0 +1,24 @@
+#!/usr/bin/env python3
+from psutil import net_if_addrs as list_nets
+from socket import AF_INET as IPv4
+from socket import AF_INET6 as IPv6
+from re import search
+interface_name = 'wlp16s0'
+include_ipv6 = False
+nets = list_nets()
+if interface_name not in nets.keys():
+    print(interface_name, "is down")
+    print(interface_name, "is down")
+    print("#FF4444")
+    exit()
+full_text, short_text = '', ''
+for connection in nets[interface_name]:
+    if connection.family == IPv4:
+        full_text += "IPv4 Address: " + connection.address + "; "
+        short_text += "IP4 " + connection.address
+    if (connection.family == IPv6) and include_ipv6:
+        full_text += "IPv6 Address: " + connection.address + "; "
+        short_text += "IP6 " + connection.address
+print(full_text)
+print(short_text)
+print("#22FF88")
