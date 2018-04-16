@@ -3,7 +3,11 @@ from psutil import net_if_addrs as list_nets
 from socket import AF_INET as IPv4
 from socket import AF_INET6 as IPv6
 from re import search
-interface_name = 'wlp16s0'
+try:
+    interface_name = environ['BLOCK_INSTANCE']
+except Exception as e:
+    print("Interface not specified!")
+    exit(1)
 include_ipv6 = False
 nets = list_nets()
 if interface_name not in nets.keys():
