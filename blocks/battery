@@ -1,6 +1,41 @@
 #!/usr/bin/env python3
 from subprocess import run, PIPE
 import re
+
+
+from typing import Tuple
+
+
+def rgb_from_percent(percent: int) -> Tuple[int, int, int]:
+    """Get the proper red green and blue values for a given percent."""
+    green_value = (percent * 2) / 100 * 255
+    red_value = (200 - percent * 2) / 100 * 255
+    if green_value > 255:
+        green_value = 255
+    if red_value > 255:
+        red_value = 255
+    return (int(red_value), int(green_value), 0)
+
+def hex_from_rgb(red: int, green: int, blue: int) -> str:
+    """Given a red, green, and blue value, retrieve a valid hexcode.
+
+    Example: hex_from_rgb(255, 255, 0) -> #FFFF00
+    """
+    hexcode = "#"
+    assert 0 <= red <= 255, "Color values must be between 0 and 255, got " \
+        + str(red)
+    assert 0 <= green <= 255, "Color values must be between 0 and 255, got " \
+        + str(green)
+    assert 0 <= blue <= 255, "Color values must be between 0 and 255, got " \
+        + str(blue)
+    for color in (red, green, blue):
+        if len(hex(color)) == 3:
+            hexcode += '0' + hex(color)[-1:].upper()
+        else:
+            hexcode += hex(color)[-2:].upper()
+    return hexcode
+
+
 battfile="/org/freedesktop/UPower/devices/battery_C23B"
 batstat = run(f"upower -i {battfile}",stdout=PIPE,shell=True)
 percstr = ""
@@ -19,15 +54,4 @@ else:
     print(state, '-', percent + '%')
     print(state, '-', percent + '%')
 
-if int(percent) > 90:
-    print("#22FF22")
-elif int(percent) > 75:
-    print("#55FF22")
-elif int(percent) > 60:
-    print("#AAFF00")
-elif int(percent) > 40:
-    print("#FFFF00")
-elif int(percent) > 25:
-    print("#FF8822")
-else:
-    print("#FF2222")
+print(hex_from_rgb(*rgb_from_percent(int(percent))))
