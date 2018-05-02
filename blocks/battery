@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 from subprocess import run, PIPE
 import re
-
-
+import spectra
 from typing import Tuple
+from strict_hint import strict
 
 
+@strict
 def rgb_from_percent(percent: int) -> Tuple[int, int, int]:
     """Get the proper red green and blue values for a given percent."""
     green_value = (percent * 2) / 100 * 255
@@ -16,6 +17,8 @@ def rgb_from_percent(percent: int) -> Tuple[int, int, int]:
         red_value = 255
     return (int(red_value), int(green_value), 0)
 
+
+@strict
 def hex_from_rgb(red: int, green: int, blue: int) -> str:
     """Given a red, green, and blue value, retrieve a valid hexcode.
 
@@ -36,17 +39,17 @@ def hex_from_rgb(red: int, green: int, blue: int) -> str:
     return hexcode
 
 
-battfile="/org/freedesktop/UPower/devices/battery_C23B"
-batstat = run(f"upower -i {battfile}",stdout=PIPE,shell=True)
-percstr = ""
+battfile    = "/org/freedesktop/UPower/devices/battery_C23B"
+batstat     = run(f"upower -i {battfile}", stdout=PIPE, shell=True)
+percstr     = ""
 for line in batstat.stdout.decode().split("\n"):
     if "state" in line:
         stateline = line
     if "percentage" in line:
-        percstr=line
-state = re.sub(r"\s*state:\s*", '', stateline)
-perc=re.search(r"\d\d\d?%",percstr)
-percent = percstr[perc.start():perc.end()].strip('%')
+        percstr = line
+state       = re.sub(r"\s*state:\s*", '', stateline)
+perc        = re.search(r"\d\d\d?%", percstr)
+percent     = percstr[perc.start():perc.end()].strip('%')
 if state == "fully-charged":
     print(state)
     print(state)
@@ -55,3 +58,7 @@ else:
     print(state, '-', percent + '%')
 
 print(hex_from_rgb(*rgb_from_percent(int(percent))))
+print(spectra.range(
+    [spectra.rgb(0xFF, 0, 0), spectra.rgb(0, 0xFF, 0)],
+    100
+)[percent - 1])
