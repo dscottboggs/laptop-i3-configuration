@@ -379,6 +379,12 @@ bindsym Control+Shift+F7 move right
 bindsym Control+Shift+F5 move down
 bindsym Control+Shift+F8 move up
 
+exec --no-startup-id xmodmap -e "remove Lock = Caps_Lock" \
+        -e "keysym Caps_Lock = Control_L" \
+        -e "add Control = Control" \
+        -e "keycode any = Lock"
+exec --no-startup-id xcape -e "Control=CapsLock"
+
 ###                         Theme colors                    ###
 # class                   border  backgr. text    indic.   child_border
   client.focused          #556064 #556064 #80FFF9 #FDF6E3
